@@ -2,28 +2,37 @@ package system
 
 import (
 	"database/sql"
-	"log"
+	"fmt"
+	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-var DB *sql.DB
+type Database struct {
+	connectionPool *sql.DB
+}
 
-func InitDB(dsn string) (*sql.DB, error) {
+func CreateConnectionPool() (Database, error) {
 
-	db, err := sql.Open("mysql", dsn)
+	// Create connection pool
+	dsn, ok := os.LookupEnv("DATABASE_DSN")
+	if !ok {
+		panic("DATABASE_DSN is not set")
+	}
+
+	connectionPool, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, err
+		return Database{}, err
 	}
 
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(5)
+	connectionPool.SetMaxOpenConns(10)
+	connectionPool.SetMaxIdleConns(5)
 
-	if err := db.Ping(); err != nil {
-		return nil, err
+	if err := connectionPool.Ping(); err != nil {
+		return Database{}, err
 	}
 
-	DB = db
+	fmt.Println("Database connection established")
 
-	log.Println("Connected to database")
-
-	return db, nil
+	return Database{connectionPool: connectionPool}, nil
 }
