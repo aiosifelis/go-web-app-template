@@ -27,11 +27,39 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
-	e.Renderer = system.NewTemplateRenderer()
 	e.Use(middlewares.Database(&connectionPool))
 
+	e.Renderer = system.NewTemplateRenderer()
+
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		c.Logger().Error(err)
+		// c.Render(http.StatusInternalServerError, "error.html", map[string]interface{}{
+		// 	"Title":   "Error Page",
+		// 	"Message": "An error occurred",
+		// })
+		c.Redirect(http.StatusFound, "/error")
+	}
+
 	e.Static("public", "src/public")
+
+	authRoutes := e.Group("/auth")
+	mainRoutes := e.Group("/main")
+
+	mainRoutes.Use(middlewares.AuthMiddleware)
+
+	mainRoutes.GET("/about", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "about.html", map[string]interface{}{
+			"Title":   "About Page",
+			"Message": "Welcome to the About",
+		})
+	})
+
+	authRoutes.GET("/login", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "auth/login.html", map[string]interface{}{
+			"Title":   "Login Page",
+			"Message": "Login to your account",
+		})
+	})
 
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "home.html", map[string]interface{}{
@@ -40,17 +68,10 @@ func main() {
 		})
 	})
 
-	e.GET("/about", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "about.html", map[string]interface{}{
-			"Title":   "About Page",
-			"Message": "Learn more About Us on this page.",
-		})
-	})
-
-	e.GET("/login", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "auth/login.html", map[string]interface{}{
-			"Title":   "Login Page",
-			"Message": "Login to your account",
+	e.GET("/error", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "error.html", map[string]interface{}{
+			"Title":   "Error Page",
+			"Message": "An error occurred",
 		})
 	})
 
