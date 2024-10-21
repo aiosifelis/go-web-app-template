@@ -1,0 +1,19 @@
+package pages
+
+
+import (
+    "github.com/aiosifelis/go-web-app-template/src/views/layouts"
+	"github.com/aiosifelis/go-web-app-template/src/views/components"
+)
+
+templ LoginPage(data *layouts.PageData) {
+    @layouts.AuthLayout(data) {
+        <h2>{ data.Title }</h2>
+        <p>{ data.Content }</p>
+        <nav>
+            <a href="/auth/signup">Sign up</a>
+            <a href="/auth/forgot-password">Forgot your password?</a>
+        </nav>
+        @components.Input(components.NewInput("email", "Email", "email", "Enter your email", "email"))
+    }
+}

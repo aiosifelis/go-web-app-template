@@ -1,12 +1,12 @@
 # Config file for air - Live reloading for Go apps
 [build]
-cmd = "go build -o ./tmp/main ." # Command to build your Go app
+cmd = "templ generate && go build -o ./tmp/main ." # Command to build your Go app
 bin = "tmp/main"                 # Binary output location
 full_bin = "./tmp/main"          # Full path to the output binary
 # include_dirs = ["."]
 # exclude_dirs = ["vendor", "tmp"]
-include_ext = ["go", "tpl", "html", "js"] # File extensions to watch
-exclude_regex = ["_test.go"]     # Files to ignore
+include_ext = ["go", "tpl", "html", "js", "templ", "tmpl"] # File extensions to watch
+exclude_regex = ["_test.go", ".*_templ.go"]     # Files to ignore
 
 [log]
 level = "debug"                  # Log level (options: debug, info, warn, error, fatal, panic)

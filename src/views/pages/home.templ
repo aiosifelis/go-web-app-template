@@ -1,0 +1,13 @@
+package pages
+
+import (
+    "github.com/aiosifelis/go-web-app-template/src/views/layouts"    
+) 
+
+
+templ HomePage(data *layouts.PageData) {
+    @layouts.MainLayout(data) {
+        <h2>{ data.Title }</h2>
+        <p>{ data.Content }</p>
+    }
+}
