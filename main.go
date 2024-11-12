@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/aiosifelis/go-web-app-template/src/middlewares"
+	"github.com/aiosifelis/go-web-app-template/src/migrations"
 	"github.com/aiosifelis/go-web-app-template/src/system"
 	"github.com/aiosifelis/go-web-app-template/src/views/layouts"
 	"github.com/aiosifelis/go-web-app-template/src/views/pages"
@@ -20,16 +21,19 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	connectionPool, err := system.CreateConnectionPool()
+	db, err := system.InitializeDatabase()
 	if err != nil {
 		panic("connection")
 	}
+
+	// Migrate the database
+	migrations.Migrate(db)
 
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middlewares.Database(&connectionPool))
+	e.Use(middlewares.Database(db))
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		c.Logger().Error(err)

@@ -1,38 +1,57 @@
 package system
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-type Database struct {
-	connectionPool *sql.DB
-}
-
-func CreateConnectionPool() (Database, error) {
+func InitializeDatabase() (*gorm.DB, error) {
 
 	// Create connection pool
-	dsn, ok := os.LookupEnv("DATABASE_DSN")
-	if !ok {
-		panic("DATABASE_DSN is not set")
-	}
+	dsn := getDSN()
 
-	connectionPool, err := sql.Open("mysql", dsn)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
 	if err != nil {
-		return Database{}, err
+		log.Fatal(err)
+		return nil, err
 	}
 
-	connectionPool.SetMaxOpenConns(10)
-	connectionPool.SetMaxIdleConns(5)
-
-	if err := connectionPool.Ping(); err != nil {
-		return Database{}, err
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
 	}
 
-	fmt.Println("Database connection established")
+	// Set connection pool
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(5 * 60 * 60)
 
-	return Database{connectionPool: connectionPool}, nil
+	return db, nil
+}
+
+func getDSN() string {
+	dbUser, ok := os.LookupEnv("DB_USER")
+	if !ok {
+		panic("DB_USER is not set")
+	}
+	dbPass, ok := os.LookupEnv("DB_PASS")
+	if !ok {
+		panic("DB_PASS is not set")
+	}
+	dbHost, ok := os.LookupEnv("DB_HOST")
+	if !ok {
+		panic("DB_HOST is not set")
+	}
+	dbName, ok := os.LookupEnv("DB_NAME")
+	if !ok {
+		panic("DB_NAME is not set")
+	}
+
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
 }
