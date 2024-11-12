@@ -11,7 +11,6 @@ import (
 
 func InitializeDatabase() (*gorm.DB, error) {
 
-	// Create connection pool
 	dsn := getDSN()
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
